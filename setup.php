@@ -128,7 +128,12 @@ function monitor_device_table_bottom() {
 		strURL += '&rows=' + $('#rows').val();
 		strURL += '&filter=' + $('#filter').val();
 		strURL += '&header=false';
-		loadPageNoHeader(strURL);
+
+		if (typeof loadUrl == 'undefined') {
+			loadPageNoHeader(strURL);
+		} else {
+			loadUrl({ url: strURL });
+		}
 	};
 
 	</script>
