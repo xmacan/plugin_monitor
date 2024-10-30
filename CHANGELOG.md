@@ -1,5 +1,9 @@
 ## Changelog
 
+--- develop ---
+
+* issue#182: Color coding monitor page list view
+
 --- 2.7 ---
 
 * issue#161: Reboot warnings triggered at the wrong time.

@@ -256,7 +256,7 @@ function draw_page() {
 		print "<div class='center monitor_legend'>";
 
 		foreach($iclasses as $index => $class) {
-			print "<div class='monitor_legend_cell center $class" . "Bg'>" . $icolorsdisplay[$index] . "</div>";
+			print "<div class='monitor_legend_cell center $class" . "Full'>" . $icolorsdisplay[$index] . "</div>";
 		}
 
 		print "</div>";
@@ -851,7 +851,8 @@ function draw_filter_and_status() {
 		// Clear the timeout to keep countdown accurate
 		clearTimeout(myTimer);
 
-		$('#go').click(function() {
+		$('#go').click(function(event) {
+			event.preventDefault();
 			applyFilter('go');
 		});
 
@@ -1307,6 +1308,7 @@ function render_default() {
 				$sql_join
 				$sql_where");
 		}
+
 		$maxlen = get_monitor_trim_length($maxlen);
 
 		$function = 'render_header_' . get_request_var('view');
@@ -1760,7 +1762,9 @@ function get_host_status_description($status) {
 	}
 }
 
-/*Single host  rendering */
+/**
+ * render_host - Renders a host using a sub-function
+ */
 function render_host($host, $float = true, $maxlen = 10) {
 	global $thold_hosts, $config, $icolorsdisplay, $iclasses, $classes, $maxchars, $mon_zoom_state;
 
@@ -2128,9 +2132,15 @@ function render_header_list($hosts) {
 		)
 	);
 
-	$output  = html_start_box(__('Monitored Devices', 'monitor'), '100%', '', '3', 'center', '');
-	$output .= html_nav_bar('monitor.php', 1, 1, sizeof($hosts), sizeof($hosts), cacti_sizeof($display_text), __('Devices', 'monitor'));
-	$output .= html_header($display_text, '', '', false);
+	ob_start();
+
+	html_start_box(__('Monitored Devices', 'monitor'), '100%', '', '3', 'center', '');
+	html_nav_bar('monitor.php', 1, 1, sizeof($hosts), sizeof($hosts), cacti_sizeof($display_text), __('Devices', 'monitor'));
+	html_header($display_text, '', '', false);
+
+	$output = ob_get_contents();
+
+	ob_end_clean();
 
 	return $output;
 }
@@ -2152,11 +2162,19 @@ function render_footer_tilesadt($hosts) {
 }
 
 function render_footer_list($hosts) {
+	ob_start();
+
 	html_end_box(false);
+
+	$output = ob_get_contents();
+
+	ob_end_clean();
+
+	return $output;
 }
 
 function render_host_list($host) {
-	global $criticalities;
+	global $criticalities, $iclasses;
 
 	if ($host['status'] < 2 || $host['status'] == 5) {
 		$dt = get_timeinstate($host);
@@ -2198,22 +2216,35 @@ function render_host_list($host) {
 
 	$host_datefail = $host['status_fail_date'];
 
+	$iclass   = $iclasses[$host['status']];
 	$sdisplay = get_host_status_description($host['real_status']);
 
-	$result = form_alternate_row('line' . $host['id'], true);
-	$result .= form_selectable_cell('<a class="pic hyperLink linkEditMain" href="' . html_escape($host['anchor']) . '">' . $host['hostname'] .'</a>', $host['id']);
-	$result .= form_selectable_cell($host['description'], $host['id']);
-	$result .= form_selectable_cell($host['site_name'], $host['id']);
-	$result .= form_selectable_cell($host_crit, $host['id']);
-	$result .= form_selectable_cell(round($host['availability'],2) . " %", $host['id'], '', 'text-align:right;');
-	$result .= form_selectable_cell($sdisplay, $host['id'], '', 'text-align:center;');
-	$result .= form_selectable_cell($dt, $host['id'], '', 'text-align: center;');
-	$result .= form_selectable_cell($host_avg, $host['id']);
-	$result .= form_selectable_cell($host_warn, $host['id']);
-	$result .= form_selectable_cell($host_datefail, $host['id']);
-	$result .= form_selectable_cell($host_admin, $host['id']);
-	$result .= form_selectable_cell($host['notes'], $host['id']);
-	$result .= form_end_row();
+	$row_class = "{$iclass}Full";
+
+	ob_start();
+
+	print "<tr class='tableRow line{$host['id']} selectable $row_class'>";
+
+	$url = $host['anchor'];
+
+	form_selectable_cell(filter_value($host['hostname'], '', $url), $host['id'], '', 'left');
+	form_selectable_cell($host['description'], $host['id'], '', 'left');
+	form_selectable_cell($host['site_name'], $host['id'], '', 'left');
+	form_selectable_cell($host_crit, $host['id'], '', 'left');
+	form_selectable_cell(round($host['availability'],2) . " %", $host['id'], '', 'right');
+	form_selectable_cell($sdisplay, $host['id'], '', 'center');
+	form_selectable_cell($dt, $host['id'], '', 'center');
+	form_selectable_cell($host_avg, $host['id'], '', 'left');
+	form_selectable_cell($host_warn, $host['id'], '', 'left');
+	form_selectable_cell($host_datefail, $host['id'], '', 'left');
+	form_selectable_cell($host_admin, $host['id'], '', 'left');
+	form_selectable_cell($host['notes'], $host['id'], '', 'left');
+
+	form_end_row();
+
+	$result = ob_get_contents();
+
+	ob_end_clean();
 
 	return $result;
 }
