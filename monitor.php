@@ -223,7 +223,7 @@ function draw_page() {
 		$name = __('New Dashboard', 'monitor');
 	}
 
-	$new_form  = "<div id='newdialog'><form id='new_dashboard'><table class='monitorTable'><tr><td colspan='2'>" . __('Enter the Dashboard Name and then press \'Save\' to continue, else press \'Cancel\'', 'monitor') . '</td></tr><tr><td>' . __('Dashboard', 'monitor') . "</td><td><input id='name' class='ui-state-default ui-corner-all' type='text' size='30' value='" . html_escape($name) . "'></td></tr></table></form></div>";
+	$new_form  = "<div id='newdialog'> <form id='new_dashboard'> <table class='monitorTableHeader'> <tr> <td colspan='2'>" . __('Enter the Dashboard Name and then press \'Save\' to continue, else press \'Cancel\'', 'monitor') . '</td> </tr> <tr> <td>' . __('Dashboard', 'monitor') . "</td> <td><input id='name' class='ui-state-default ui-corner-all' type='text' size='30' value='" . html_escape($name) . "'></td> </tr> </table> </form> </div>";
 
 	$new_title = __('Create New Dashboard', 'monitor');
 
@@ -865,6 +865,7 @@ function draw_filter_and_status() {
 			minHeight: 80,
 			minWidth: 500,
 			buttons: btnDialog,
+			position: { at: "center top+240px", of: window },
 			open: function() {
 				$('#btnSave').focus();
 			}
@@ -1339,25 +1340,19 @@ function render_where_join(&$sql_where, &$sql_join) {
 		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
 
 		$sql_where = 'WHERE h.disabled = ""
-			AND h.deleted = ""
-			AND ((td.thold_enabled="on" AND td.thold_alert > 0) OR td.id IS NULL)' . $awhere;
+			AND h.deleted = ""' . $awhere;
 	} elseif (get_request_var('status') == -3) {
 		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
 
 		$sql_where = 'WHERE h.disabled = ""
 			AND h.monitor = ""
-			AND h.deleted = ""
-			AND (h.availability_method > 0 OR h.snmp_version > 0
-				OR ((td.thold_enabled="on" AND td.thold_alert > 0)
-				OR td.id IS NULL)
-			)' . $awhere;
+			AND h.deleted = "")' . $awhere;
 	} else {
 		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
 
 		$sql_where = 'WHERE (h.disabled = ""
 			AND h.deleted = ""
-			AND td.id IS NULL
-			)' . $awhere;
+			AND td.id IS NULL)' . $awhere;
 	}
 }
 
@@ -1534,7 +1529,12 @@ function render_site() {
 				}
 
 				if ($ctemp != $ptemp) {
-					$result .= "<div class='monitorTable'><div class='navBarNavigation'><div class='navBarNavigationNone'>" . $host['site_name'] . "</div></div></div><div class='monitor_container'>";
+					$result .= "<div class='monitorTableHeader'>
+						<div class='navBarNavigation'>
+							<div class='navBarNavigationNone'>" . html_escape($host['site_name']) . "</div>
+						</div>
+					</div>
+					<div class='monitor_container'>";
 				}
 			}
 
@@ -1649,7 +1649,12 @@ function render_template() {
 				}
 
 				if ($ctemp != $ptemp) {
-					$result .= "<div class='monitorTable'><div class='navBarNavigation'><div class='navBarNavigationNone'>" . $host['host_template_name'] . "</div></div></div><div class='monitor_container'>";
+					$result .= "<div class='monitorTableHeader'>
+						<div class='navBarNavigation'>
+							<div class='navBarNavigationNone'>" . html_escape($host['host_template_name']) . "</div>
+						</div>
+					</div>
+					<div class='monitor_container'>";
 				}
 			}
 
@@ -1714,12 +1719,14 @@ function render_tree() {
 			INNER JOIN graph_tree AS gt
 			ON gt.id = gti.graph_tree_id
 			INNER JOIN host AS h
-			ON h.id=gti.host_id
+			ON h.id = gti.host_id
 			$sql_join
 			$sql_where
 			AND gti.host_id > 0
 			AND gti.graph_tree_id IN (" . implode(',', $tree_ids) . ")
 			ORDER BY gt.sequence, gti.position");
+
+		//cacti_log($branchWhost_SQL);
 
 		$branchWhost = db_fetch_assoc($branchWhost_SQL);
 
@@ -1769,15 +1776,17 @@ function render_tree() {
 				$hosts_sql = "SELECT h.*, IFNULL(s.name,' " . __('Non-Site Device', 'monitor') . " ') AS site_name
 					FROM host AS h
 					LEFT JOIN sites AS s
-					ON h.site_id=s.id
+					ON h.site_id = s.id
 					INNER JOIN graph_tree_items AS gti
-					ON h.id=gti.host_id
+					ON h.id = gti.host_id
 					$sql_join
 					$sql_where
 					AND parent = ?
 					AND graph_tree_id = ?
 					GROUP BY h.id
 					ORDER BY gti.position";
+
+				//cacti_log($hosts_sql);
 
 				$hosts = db_fetch_assoc_prepared($hosts_sql, array($oid, $graph_tree_id));
 
@@ -1791,7 +1800,13 @@ function render_tree() {
 						$result .= '</div>';
 					}
 
-					$result .= "<div class='monitorTable'><div class='navBarNavigation'><div class='navBarNavigationNone'>" . __('Tree: %s', $tree_name, 'monitor') . "</div></div></div><div class='monitorTable'><div class='monitor_sub_container'>";
+					$result .= "<div class='monitorTableHeader'>
+						<div class='navBarNavigation'>
+							<div class='navBarNavigationNone'>" . __esc('Tree: %s', $tree_name, 'monitor') . "</div>
+						</div>
+					</div>
+					<div class='monitorTable'>
+						<div class='monitor_sub_container'>";
 
 					$ptree = $tree_name;
 				}
@@ -1807,7 +1822,7 @@ function render_tree() {
 
 					$class = get_request_var('size');
 
-					$result .= "<div class='monitorSubTable'><div class='navBarNavigation'><div class='navBarNavigationNone'>" . __('Branch: %s', $title, 'monitor') . "</div></div><div class='monitor_sub_container'>";
+					$result .= "<div class='monitorSubTable'><div class='navBarNavigation'><div class='navBarNavigationNone'>" . __esc('Branch: %s', $title, 'monitor') . "</div></div><div class='monitor_sub_container'>";
 
 					foreach($hosts as $host) {
 						$result .= render_host($host, true, $maxlen);
@@ -1846,7 +1861,13 @@ function render_tree() {
 			}
 			$maxlen = get_monitor_trim_length($maxlen);
 
-			$result .= "<div><div class='navBarNavigation'><div class='navBarNavigationNone'>" . __('Non-Tree Devices', 'monitor') . "</div></div></div><div class='monitor_container'>";
+			$result .= "<div class='monitorTableHeader'>
+				<div class='navBarNavigation'>
+					<div class='navBarNavigationNone'>" . __('Non-Tree Devices', 'monitor') . "</div>
+				</div>
+			</div>
+			<div class='monitor_container'>";
+
 			foreach($hosts as $leaf) {
 				$result .= render_host($leaf, true, $maxlen);
 			}
