@@ -94,12 +94,13 @@
 	width: 100%;
 }
 
-.monitor_legend > * {
+.monitor_legend_cell {
 	padding: 0px;
+	display: column;
 	white-space: nowrap;
-	min-width: 100px;
+	min-width: 120px;
 	font-size: 11px;
-	flex: 1 9%;
+	flex: 1 14%;
 	font-weight: normal;
 }
 

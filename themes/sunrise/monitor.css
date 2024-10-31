@@ -56,6 +56,10 @@
 	color: white;
 }
 
+.monitor_legend {
+	background-color: #1D1F21;
+}
+
 .deviceThresholdFull {
 	background-color: rgba(242, 25, 36, 0.4);
 	text-align: center;
