@@ -241,9 +241,9 @@ function draw_page() {
 
 	if (function_exists($function) && get_request_var('view') != 'list') {
 		if (get_request_var('grouping') == 'default' || get_request_var('grouping') == 'site') {
-			html_start_box(__('Monitored Devices', 'monitor'), '100%', '', '3', 'center', '');
+			html_start_box(__('Monitored Devices', 'monitor'), '100%', true, '3', 'center', '');
 		} else {
-			html_start_box('', '100%', '', '3', 'center', '');
+			html_start_box('', '100%', true, '3', 'center', '');
 		}
 
 		print $function();
@@ -458,7 +458,7 @@ function draw_filter_and_status() {
 
 	$header = __('Monitor Filter [ Last Refresh: %s ]', date('g:i:s a', time()), 'monitor') . (get_request_var('refresh') < 99999 ? __(' [ Refresh Again in <i style="padding:0px !important;margin:0px;" id="timer">%d</i> Seconds ]', get_request_var('refresh'), 'monitor') : '') . (get_request_var('view') == 'list' ? __('[ Showing only first 30 Devices ]', 'monitor'):'') . '<span id="text" style="vertical-align:baseline;padding:0px !important;display:none"></span>';
 
-	html_start_box($header, '100%', '', '3', 'center', '');
+	html_start_box($header, '100%', true, '3', 'center', '');
 
 	print '<tr class="even"><td>' . PHP_EOL;
 	print '<form class="monitorFilterForm">' . PHP_EOL;
@@ -1963,9 +1963,9 @@ function render_host($host, $float = true, $maxlen = 10) {
 			$tis = get_timeinstate($host);
 
 			if ($monitor_times=='on') {
-				$monitor_time_html="<br><div class='monitor_device{$fclass} deviceDown'>$tis</div>";
+				$monitor_time_html="<br><span class='monitor_device{$fclass} deviceDown'>$tis</span>";
 			}
-			$result = "<div class='$fclass flash monitor_device_frame'><a class='pic hyperLink' href='" . html_escape($host['anchor']) . "'><i id='" . $host['id'] . "' class='$iclass " . $host['iclass'] . "'></i><br><div class='{$fclass}_title'>" . title_trim(html_escape($host['description']), $maxlen) . "</div>$monitor_time_html</a></div>";
+			$result = "<div class='$fclass flash monitor_device_frame'><a class='pic hyperLink' href='" . html_escape($host['anchor']) . "'><i id='" . $host['id'] . "' class='$iclass " . $host['iclass'] . "'></i><br><span class='{$fclass}_title'>" . title_trim(html_escape($host['description']), $maxlen) . "</span>$monitor_time_html</a></div>";
 		} else {
 			$tis = get_uptime($host);
 
@@ -1973,7 +1973,7 @@ function render_host($host, $float = true, $maxlen = 10) {
 				$monitor_time_html="<br><div class='monitor_device{$fclass} deviceUp'>$tis</div>";
 			}
 
-			$result = "<div class='$fclass monitor_device_frame'><a class='pic hyperLink' href='" . html_escape($host['anchor']) . "'><i id=" . $host['id'] . " class='$iclass " . $host['iclass'] . "'></i><br><div class='{$fclass}_title'>" . title_trim(html_escape($host['description']), $maxlen) . "</div>$monitor_time_html</a></div>";
+			$result = "<div class='$fclass monitor_device_frame'><a class='pic hyperLink' href='" . html_escape($host['anchor']) . "'><i id=" . $host['id'] . " class='$iclass " . $host['iclass'] . "'></i><br><span class='{$fclass}_title'>" . title_trim(html_escape($host['description']), $maxlen) . "</span>$monitor_time_html</a></div>";
 		}
 	}
 
@@ -2312,7 +2312,7 @@ function render_header_list($hosts, $total_rows = 0, $rows = 0) {
 
 	$nav = html_nav_bar('monitor.php?rfilter=' . get_request_var('rfilter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 12, __('Devices'), 'page', 'main');
 
-	html_start_box(__('Monitored Devices', 'monitor'), '100%', '', '3', 'center', '');
+	html_start_box(__('Monitored Devices', 'monitor'), '100%', false, '3', 'center', '');
 
 	print $nav;
 

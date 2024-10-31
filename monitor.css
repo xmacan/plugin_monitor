@@ -348,7 +348,6 @@
 }
 
 .monitor_errorzoom_title {
-	display: table-cell;
 	text-align: center;
 	word-wrap: break-word;
 	overflow: hidden;
