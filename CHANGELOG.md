@@ -1,6 +1,6 @@
 ## Changelog
 
---- develop ---
+--- 2.8 ---
 
 * issue#104: Broken responsive design
 * issue#182: Color coding monitor page list view
