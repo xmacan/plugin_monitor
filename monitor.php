@@ -1367,12 +1367,11 @@ function render_default() {
 	$sql_limit = '';
 	$sql_order = 'ORDER BY description';
 
-	if (get_request_var('rows') == '-1') {
+	$rows = get_request_var('rows');
+	if ($rows == '-1') {
 		$rows = read_config_option('num_rows_table');
-	} elseif (get_request_var('rows') == 'default') {
+	} elseif (!is_numeric($rows)) {
 		$rows = read_config_option('num_rows_table');
-	} else {
-		$rows = get_request_var('rows');
 	}
 
 	if (get_request_var('view') == 'list') {
@@ -1456,12 +1455,11 @@ function render_site() {
 	$sql_join  = '';
 	$sql_limit = '';
 
-	if (get_request_var('rows') == '-1') {
+	$rows = get_request_var('rows');
+	if ($rows == '-1') {
 		$rows = read_config_option('num_rows_table');
-	} elseif (get_request_var('rows') == 'default') {
+	} elseif (!is_numeric($rows)) {
 		$rows = read_config_option('num_rows_table');
-	} else {
-		$rows = get_request_var('rows');
 	}
 
 	render_where_join($sql_where, $sql_join);
@@ -1568,12 +1566,11 @@ function render_template() {
 	$sql_join  = '';
 	$sql_limit = '';
 
-	if (get_request_var('rows') == '-1') {
+	$rows = get_request_var('rows');
+	if ($rows == '-1') {
 		$rows = read_config_option('num_rows_table');
-	} elseif (get_request_var('rows') == 'default') {
+	} elseif (!is_numeric($rows)) {
 		$rows = read_config_option('num_rows_table');
-	} else {
-		$rows = get_request_var('rows');
 	}
 
 	render_where_join($sql_where, $sql_join);
