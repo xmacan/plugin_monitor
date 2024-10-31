@@ -5,6 +5,7 @@
 * issue#182: Color coding monitor page list view
 * issue#177: Monitor Plugin - Email Notification Issue
 * feature#183: Add Ordering and Row Counters to List View
+* feature#184: Show devices that don't have availability, are not monitored, or don't have thresholds
 
 --- 2.7 ---
 

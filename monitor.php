@@ -76,10 +76,13 @@ $classes = array(
 );
 
 $monitor_status = array(
-	-1 => __('All Monitored', 'monitor'),
+	-2 => __('All Devices', 'monitor'),
+	-1 => __('All Monitored Devices', 'monitor'),
 	0  => __('Not Up', 'monitor'),
 	1  => __('Not Up or Triggered', 'monitor'),
-	2  => __('Not Up, Triggered or Breached', 'monitor')
+	2  => __('Not Up, Triggered or Breached', 'monitor'),
+	-4 => __('Devices without Thresholds', 'monitor'),
+	-3 => __('Devices not Monitored', 'monitor'),
 );
 
 $monitor_view_type = array(
@@ -374,38 +377,47 @@ function get_filter_text() {
 	$filter = '<div class="center monitorFooterText">';
 
 	switch(get_request_var('status')) {
-	case '-1':
-		$filter .= __('All Monitored Devices', 'monitor');
-		break;
-	case '0':
-		$filter .= __('Monitored Devices either Down or Recovering', 'monitor');
-		break;
-	case '1':
-		$filter .= __('Monitored Devices either Down, Recovering, or with Triggered Thresholds', 'monitor');
-		break;
-	case '2':
-		$filter .= __('Monitored Devices either Down, Recovering, or with Breached or Triggered Thresholds', 'monitor');
-		break;
-	default:
-		$filter .= __('Unknown monitoring status (%s)', get_request_var('status'), 'monitor');
+		case '-4':
+			$filter .= __('Devices without Thresholds', 'monitor');
+			break;
+		case '-3':
+			$filter .= __('Not Monitored Devices', 'monitor');
+			break;
+		case '-2':
+			$filter .= __('All Devices', 'monitor');
+			break;
+		case '-1':
+			$filter .= __('All Monitored Devices', 'monitor');
+			break;
+		case '0':
+			$filter .= __('Monitored Devices either Down or Recovering', 'monitor');
+			break;
+		case '1':
+			$filter .= __('Monitored Devices either Down, Recovering, or with Triggered Thresholds', 'monitor');
+			break;
+		case '2':
+			$filter .= __('Monitored Devices either Down, Recovering, or with Breached or Triggered Thresholds', 'monitor');
+			break;
+		default:
+			$filter .= __('Unknown monitoring status (%s)', get_request_var('status'), 'monitor');
 	}
 
 	switch(get_request_var('crit')) {
-	case '0':
-		$filter .= __(', and All Criticalities', 'monitor');
-		break;
-	case '1':
-		$filter .= __(', and of Low Criticality or Higher', 'monitor');
-		break;
-	case '2':
-		$filter .= __(', and of Medium Criticality or Higher', 'monitor');
-		break;
-	case '3':
-		$filter .= __(', and of High Criticality or Higher', 'monitor');
-		break;
-	case '4':
-		$filter .= __(', and of Mission Critical Status', 'monitor');
-		break;
+		case '0':
+			$filter .= __(', and All Criticalities', 'monitor');
+			break;
+		case '1':
+			$filter .= __(', and of Low Criticality or Higher', 'monitor');
+			break;
+		case '2':
+			$filter .= __(', and of Medium Criticality or Higher', 'monitor');
+			break;
+		case '3':
+			$filter .= __(', and of High Criticality or Higher', 'monitor');
+			break;
+		case '4':
+			$filter .= __(', and of Mission Critical Status', 'monitor');
+			break;
 	}
 
 	$filter .= __('</div><div class="center monitorFooterTextBold">Remember to first select eligible Devices to be Monitored from the Devices page!</div></div></div>', 'monitor');
@@ -584,7 +596,17 @@ function draw_filter_and_status() {
 
 	if (get_request_var('grouping') == 'template') {
 		$templates = array();
-		$templates_allowed = array_rekey(db_fetch_assoc('SELECT id, name FROM host_template'), 'id', 'name');
+		$templates_allowed = array_rekey(
+			db_fetch_assoc('SELECT ht.id, ht.name, COUNT(gl.id) AS graphs
+				FROM host_template AS ht
+				INNER JOIN host AS h
+				ON h.host_template_id = ht.id
+				INNER JOIN graph_local AS gl
+				ON h.id = gl.host_id
+				GROUP BY ht.id
+				HAVING graphs > 0'),
+			'id', 'name'
+		);
 
 		if (cacti_sizeof($templates_allowed)) {
 			$templates_prefix = array(-1 => __('All Templates', 'monitor'));
@@ -1303,14 +1325,38 @@ function render_where_join(&$sql_where, &$sql_join) {
 				AND ((h.cur_time > h.monitor_warn AND h.monitor_warn > 0)
 				OR (h.cur_time > h.monitor_alert AND h.monitor_alert > 0))
 			))' . $awhere;
-	} else {
+	} elseif (get_request_var('status') == -1) {
 		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
 
 		$sql_where = 'WHERE h.disabled = ""
 			AND h.monitor = "on"
 			AND h.deleted = ""
 			AND (h.availability_method > 0 OR h.snmp_version > 0
-				OR (td.thold_enabled="on" AND td.thold_alert > 0)
+				OR ((td.thold_enabled="on" AND td.thold_alert > 0)
+				OR td.id IS NULL)
+			)' . $awhere;
+	} elseif (get_request_var('status') == -2) {
+		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
+
+		$sql_where = 'WHERE h.disabled = ""
+			AND h.deleted = ""
+			AND ((td.thold_enabled="on" AND td.thold_alert > 0) OR td.id IS NULL)' . $awhere;
+	} elseif (get_request_var('status') == -3) {
+		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
+
+		$sql_where = 'WHERE h.disabled = ""
+			AND h.monitor = ""
+			AND h.deleted = ""
+			AND (h.availability_method > 0 OR h.snmp_version > 0
+				OR ((td.thold_enabled="on" AND td.thold_alert > 0)
+				OR td.id IS NULL)
+			)' . $awhere;
+	} else {
+		$sql_join  = 'LEFT JOIN thold_data AS td ON td.host_id=h.id';
+
+		$sql_where = 'WHERE (h.disabled = ""
+			AND h.deleted = ""
+			AND td.id IS NULL
 			)' . $awhere;
 	}
 }
