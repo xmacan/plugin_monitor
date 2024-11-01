@@ -458,7 +458,7 @@ function draw_filter_and_status() {
 
 	$header = __('Monitor Filter [ Last Refresh: %s ]', date('g:i:s a', time()), 'monitor') . (get_request_var('refresh') < 99999 ? __(' [ Refresh Again in <i style="padding:0px !important;margin:0px;" id="timer">%d</i> Seconds ]', get_request_var('refresh'), 'monitor') : '') . (get_request_var('view') == 'list' ? __('[ Showing only first 30 Devices ]', 'monitor'):'') . '<span id="text" style="vertical-align:baseline;padding:0px !important;display:none"></span>';
 
-	html_start_box($header, '100%', true, '3', 'center', '');
+	html_start_box($header, '100%', false, '3', 'center', '');
 
 	print '<tr class="even"><td>' . PHP_EOL;
 	print '<form class="monitorFilterForm">' . PHP_EOL;
