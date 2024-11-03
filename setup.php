@@ -184,37 +184,35 @@ function monitor_check_upgrade() {
 
 	$info    = plugin_monitor_version();
 	$current = $info['version'];
-	$old     = read_config_option('plugin_monitor_version');
-
-	api_plugin_register_hook('monitor', 'page_head', 'plugin_monitor_page_head', 'setup.php', 1);
+	$old     = db_fetch_cell('SELECT version FROM plugin_config WHERE directory = "monitor"');
 
 	if ($current != $old) {
 		monitor_setup_table();
+
+		api_plugin_register_hook('monitor', 'page_head', 'plugin_monitor_page_head', 'setup.php', 1);
 
 		db_execute('ALTER TABLE host MODIFY COLUMN monitor char(3) DEFAULT "on"');
 
 		db_execute('ALTER TABLE plugin_monitor_uptime
 			MODIFY COLUMN uptime BIGINT unsigned NOT NULL default "0"');
 
-		// Set the new version
-		db_execute_prepared("UPDATE plugin_config
-			SET version = ?
-			WHERE directory='monitor'", array($current));
-
-		db_execute_prepared("UPDATE plugin_config
-			SET version = ?, name = ?, author = ?, webpage = ?
-			WHERE directory = ?",
-			array(
-				$info['version'],
-				$info['longname'],
-				$info['author'],
-				$info['homepage'],
-				$info['name']
-			)
-		);
-
 		api_plugin_db_add_column('monitor', 'host', array('name' => 'monitor_icon', 'type' => 'varchar(30)', 'NULL' => false, 'default' => '', 'after' => 'monitor_alert'));
 
+		if (function_exists('api_plugin_upgrade_register')) {
+			api_plugin_upgrade_register('monitor');
+		} else {
+			db_execute_prepared("UPDATE plugin_config
+				SET version = ?, name = ?, author = ?, webpage = ?
+				WHERE directory = ?",
+				array(
+					$info['version'],
+					$info['longname'],
+					$info['author'],
+					$info['homepage'],
+					$info['name']
+				)
+			);
+		}
 	}
 }
 
@@ -710,6 +708,8 @@ function monitor_config_arrays() {
 		'phone'         => __('Phone', 'monitor'),
 		'cloud'         => __('Cloud', 'monitor')
 	);
+
+	monitor_check_upgrade();
 }
 
 
