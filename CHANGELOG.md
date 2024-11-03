@@ -1,5 +1,9 @@
 ## Changelog
 
+--- develop ---
+
+* issue: Fixing issues with saving and renaming dashboards
+
 --- 2.8 ---
 
 * issue#104: Broken responsive design
